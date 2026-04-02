@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARYA - Pedia Conference 2026</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Poppins:wght@400;700;900&display=swap');
+
+        :root {
+            --primary-blue: #1565c0;
+            --neon-blue: #00d2ff;
+            --lose-red: #ff1744;
+            --win-gold: #ffca28;
+        }
+
+        body { 
+            background: #050a15; /* Deep space dark background */
+            background-image: radial-gradient(circle at 20% 30%, #102a5a 0%, #050a15 100%);
+            display: flex; height: 100vh; margin: 0; 
+            font-family: 'Poppins', sans-serif; overflow: hidden;
+            color: white;
+        }
+
+        /* Ambient glowing background elements */
+        body::before {
+            content: ""; position: absolute; width: 400px; height: 400px;
+            background: var(--primary-blue); filter: blur(150px);
+            top: 10%; left: 10%; opacity: 0.2; z-index: -1;
+        }
+
+        #game-layout {
+            display: flex; width: 100%; height: 100%;
+            align-items: center; justify-content: space-around;
+            padding: 0 5%; box-sizing: border-box;
+        }
+
+        #left-panel { flex: 1.2; display: flex; flex-direction: column; align-items: center; position: relative; }
+
+        /* Enhanced Wheel Container with Aura */
+        #wheel-wrapper {
+            position: relative; padding: 25px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 80px rgba(0, 210, 255, 0.15);
+        }
+
+        #wheel-outer-ring {
+            position: relative; width: 620px; height: 620px;
+            border-radius: 50%; background: #ffffff;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2), 0 10px 40px rgba(0,0,0,0.5);
+            padding: 10px; display: flex; align-items: center; justify-content: center;
+            border: 8px solid #222;
+        }
+
+        #pointer {
+            position: absolute; top: -25px; left: 50%;
+            transform: translateX(-50%); width: 0; height: 0;
+            border-left: 30px solid transparent; border-right: 30px solid transparent;
+            border-top: 55px solid var(--lose-red);
+            filter: drop-shadow(0 0 15px var(--lose-red)); z-index: 20;
+        }
+
+        #center-pin {
+            position: absolute; width: 80px; height: 80px;
+            background: radial-gradient(circle, #444 0%, #111 100%);
+            border-radius: 50%; z-index: 15;
+            border: 4px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        canvas { width: 100%; height: 100%; border-radius: 50%; }
+
+        #spin-btn {
+            margin-top: 50px; padding: 25px 90px;
+            font-size: 32px; font-family: 'Orbitron', sans-serif; font-weight: 900;
+            background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+            color: white; border: none; border-radius: 100px;
+            cursor: pointer; transition: all 0.3s;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.4);
+            text-transform: uppercase; letter-spacing: 3px;
+        }
+
+        #spin-btn:hover { transform: scale(1.05); box-shadow: 0 0 50px rgba(0, 210, 255, 0.6); }
+        #spin-btn:active { transform: scale(0.95); }
+
+        #right-panel { flex: 1; display: flex; flex-direction: column; align-items: center; }
+        #arya-logo { width: 520px; filter: drop-shadow(0 0 20px rgba(255,255,255,0.2)); }
+        #tagline { 
+            font-family: 'Orbitron', sans-serif; color: #fff; 
+            font-size: 30px; letter-spacing: 12px; margin-top: 20px;
+            background: linear-gradient(to right, #fff 20%, #00d2ff 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        /* MODAL STYLES */
+        .modal {
+            position: fixed; inset: 0; display: none; 
+            align-items: center; justify-content: center; z-index: 100;
+            backdrop-filter: blur(15px);
+        }
+
+        .modal-content {
+            background: rgba(0, 0, 0, 0.8); padding: 60px;
+            border-radius: 40px; border: 2px solid rgba(255,255,255,0.1);
+            text-align: center; max-width: 80%;
+        }
+
+        #win-modal { background: rgba(0,0,0,0.9); }
+        #win-modal .modal-content { border-color: var(--win-gold); box-shadow: 0 0 100px rgba(255, 202, 40, 0.3); }
+
+        #lose-modal { background: rgba(20, 0, 0, 0.95); }
+        #lose-modal .modal-content { border-color: var(--lose-red); box-shadow: 0 0 100px rgba(255, 23, 68, 0.3); }
+
+        .btn-action {
+            margin-top: 40px; padding: 20px 60px; border: none;
+            border-radius: 50px; cursor: pointer; font-family: 'Orbitron', sans-serif;
+            font-weight: 900; font-size: 22px; text-transform: uppercase;
+        }
+
+        .shake-screen { animation: screen-shake 0.2s 3; }
+        @keyframes screen-shake {
+            0% { transform: translate(0,0); }
+            25% { transform: translate(10px, 10px); }
+            50% { transform: translate(-10px, -10px); }
+            75% { transform: translate(10px, -10px); }
+            100% { transform: translate(0,0); }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+    <div id="game-layout">
+        <div id="left-panel">
+            <div id="wheel-wrapper">
+                <div id="wheel-outer-ring">
+                    <div id="pointer"></div>
+                    <div id="center-pin"></div>
+                    <canvas id="wheel" width="800" height="800"></canvas>
+                </div>
+            </div>
+            <button id="spin-btn">ACTIVATE SPIN</button>
+        </div>
+
+        <div id="right-panel">
+            <img id="arya-logo" src="logo.png" alt="ARYA PHARMALAB">
+            <p id="tagline">REINVENTING LIVES</p>
+            <p style="color: #00d2ff; font-family: 'Orbitron'; font-size: 14px; margin-top: 50px; opacity: 0.5;"> SINCE 1994</p>
+        </div>
+    </div>
+
+    <div id="win-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="color: var(--win-gold); font-family: 'Orbitron'; letter-spacing: 5px;">EXCLUSIVE REWARD</h2>
+            <h1 id="prize-text" style="font-size: 100px; margin: 20px 0; color: #fff; text-shadow: 0 0 40px var(--win-gold);">PRIZE</h1>
+            <button class="btn-action" style="background: var(--win-gold); color: #000;" onclick="closeModals()">CLAIM GIFT</button>
+        </div>
+    </div>
+
+    <div id="lose-modal" class="modal">
+        <div class="modal-content">
+            <h1 style="font-size: 100px; color: var(--lose-red); font-family: 'Orbitron'; margin: 0; text-shadow: 0 0 50px var(--lose-red);">TRY AGAIN</h1>
+            <p style="font-size: 24px; color: #aaa; margin-top: 20px;">Better luck next time!Try another cycle.</p>
+            <button class="btn-action" style="background: var(--lose-red); color: #fff;" onclick="closeModals()">RE-SPIN</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('wheel');
+        const ctx = canvas.getContext('2d');
+        const sectors = [
+            { label: "TRY AGAIN", color: "#1a1a1a" },
+            { label: "XTREME ENERGY", color: "#0d47a1" },
+            { label: "MAX TIGER", color: "#4a148c" },
+            { label: "JELLY JUICE", color: "#e65100" },
+            { label: "GIFT BASKET", color: "#1b5e20" },
+            { label: "SPA VOUCHER", color: "#b71c1c" },
+            { label: "EYE MASK", color: "#006064" }
+        ];
+
+        const tot = sectors.length;
+        const rad = canvas.width / 2;
+        const arc = (Math.PI * 2) / tot;
+        
+        let currentRotation = 0;
+        let isSpinning = false;
+        let spinCount = parseInt(localStorage.getItem('conference_spin_id')) || 0;
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(rad, rad);
+            ctx.rotate(currentRotation);
+            ctx.translate(-rad, -rad);
+            
+            sectors.forEach((s, i) => {
+                const a = arc * i;
+                // Draw sector
+                ctx.beginPath();
+                ctx.fillStyle = s.color;
+                ctx.moveTo(rad, rad);
+                ctx.arc(rad, rad, rad, a, a + arc);
+                ctx.fill();
+                
+                // Add metallic border to each slice
+                ctx.strokeStyle = "rgba(255,255,255,0.1)";
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Draw Text
+                ctx.save();
+                ctx.translate(rad, rad);
+                ctx.rotate(a + arc / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = "#fff";
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "rgba(0,0,0,0.5)";
+                ctx.font = "bold 34px Poppins";
+                ctx.fillText(s.label, rad - 60, 12);
+                ctx.restore();
+            });
+            ctx.restore();
+        }
+
+        function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
+
+        function animateSpin(startAngle, endAngle, duration) {
+            let startTime = null;
+
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                let progress = (timestamp - startTime) / duration;
+                if (progress > 1) progress = 1;
+
+                currentRotation = startAngle + (endAngle - startAngle) * easeOut(progress);
+                draw();
+
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    isSpinning = false;
+                    const finalNorm = (1.5 * Math.PI - (currentRotation % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+                    const idx = Math.floor(finalNorm / arc);
+                    
+                    if (sectors[idx].label === "TRY AGAIN") {
+                        document.body.classList.add('shake-screen');
+                        setTimeout(() => document.body.classList.remove('shake-screen'), 600);
+                        document.getElementById('lose-modal').style.display = 'flex';
+                    } else {
+                        triggerBigWin(sectors[idx].label);
+                    }
+                }
+            }
+            requestAnimationFrame(step);
+        }
+
+        document.getElementById('spin-btn').addEventListener('click', () => {
+            if (isSpinning) return;
+            isSpinning = true;
+            spinCount++;
+            localStorage.setItem('conference_spin_id', spinCount);
+
+            const pointerPos = 1.5 * Math.PI;
+            // HARD LOGIC LOCK (Index 0 is Try Again)
+            let targetIdx = (spinCount <= 10) ? 0 : Math.floor(Math.random() * (tot - 1)) + 1;
+            
+            const targetSectorCenter = targetIdx * arc + (arc / 2);
+            const finalStopAngle = (pointerPos - targetSectorCenter);
+            
+            const startAngle = currentRotation;
+            // High speed 12-rotation spin
+            const endAngle = startAngle + (Math.PI * 24) + (finalStopAngle - (startAngle % (Math.PI * 2)));
+
+            animateSpin(startAngle, endAngle, 6000); // Dramatic 6 second spin
+        });
+
+        function triggerBigWin(prize) {
+            const duration = 5000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 200 };
+
+            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                const particleCount = 50 * (timeLeft / duration);
+                confetti({...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+                confetti({...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+            }, 250);
+
+            document.getElementById('prize-text').innerText = prize;
+            document.getElementById('win-modal').style.display = 'flex';
+        }
+
+        function closeModals() {
+            document.getElementById('win-modal').style.display = 'none';
+            document.getElementById('lose-modal').style.display = 'none';
+        }
+
+        draw();
+    </script>
+</body>
+</html>
